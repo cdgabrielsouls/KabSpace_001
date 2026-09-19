@@ -1,0 +1,38 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      allow read, create, update: if isOwner(userId);
+      allow delete: if false;
+    }
+
+    match /colleges/{collegeId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /buildings/{buildingId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /floors/{floorId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /rooms/{roomId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+  }
+}

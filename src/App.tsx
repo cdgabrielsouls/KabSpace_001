@@ -2,6 +2,8 @@ import { Moon, MoveUpRight, Sun } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import CollegeSelection from './pages/CollegeSelection'
+import CeitBuilding from './pages/CeitBuilding'
 import Login from './pages/Login'
 import './App.css'
 
@@ -55,12 +57,8 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   return user ? children : <Navigate to="/login" replace />
 }
 
-function CollegeSelection() {
-  return <main className="selection-shell"><header className="selection-header"><Link className="brand" to="/"><span className="logo-placeholder">K</span><span>KabSpace</span></Link></header><section className="selection-content"><p className="form-kicker">WELCOME TO KABSPACE</p><h1>Choose your college.</h1><p>Select a campus area to explore room availability.</p><Link className="college-active" to="/ceit">College of Engineering and Information Technology <MoveUpRight size={17} /></Link><div className="college-locked"><span>Other university colleges</span><small>Coming soon in future rollout</small></div></section></main>
-}
-
 function App() {
-  return <AuthProvider><BrowserRouter><Routes><Route path="/" element={<Landing />} /><Route path="/login" element={<Login />} /><Route path="/colleges" element={<ProtectedRoute><CollegeSelection /></ProtectedRoute>} /><Route path="*" element={<Navigate to="/" replace />} /></Routes></BrowserRouter></AuthProvider>
+  return <AuthProvider><BrowserRouter><Routes><Route path="/" element={<Landing />} /><Route path="/login" element={<Login />} /><Route path="/colleges" element={<ProtectedRoute><CollegeSelection /></ProtectedRoute>} /><Route path="/ceit" element={<ProtectedRoute><CeitBuilding /></ProtectedRoute>} /><Route path="*" element={<Navigate to="/" replace />} /></Routes></BrowserRouter></AuthProvider>
 }
 
 export default App
