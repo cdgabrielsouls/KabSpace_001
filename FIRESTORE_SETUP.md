@@ -6,6 +6,12 @@ The app reads these collections after authentication:
 - `buildings/{buildingId}`: `collegeId`, `name`
 - `floors/{floorId}`: `buildingId`, `floorNumber`
 - `rooms/{roomId}`: `floorId`, `name`, `type`, `status`
+- `reservations/{reservationId}`: `roomId`, `roomName`, `floorNumber`, `professorId`, `professorName`, `startAt`, `endAt`, `status`
+
+User profiles are stored at `users/{uid}`. New accounts choose a role once during onboarding:
+
+- Students are saved with `role: student`, `roleStatus: confirmed`.
+- Professors are saved with `role: professor`, `roleStatus: pending` and reservation requests are saved with `status: PENDING`.
 
 Use these IDs for the first CEIT seed:
 
@@ -28,3 +34,16 @@ firebase deploy --only firestore:rules
 ```
 
 The included `firestore.rules` allows authenticated users to read campus data and only allows each signed-in user to read/write their own `users/{uid}` profile. Campus documents should be managed from the Firebase Console or an administrator-only server process.
+
+Authenticated students can read pending and approved reservations. Professors can create their own pending reservation requests, but cannot edit or delete requests from the client.
+
+## Admin beta
+
+Do not use `admin123` / `pass123` as a hardcoded application credential. The admin dashboard uses the existing Firebase Auth account plus a Firestore role.
+
+1. Create or sign in to a dedicated admin account through the normal KabSpace login.
+2. In Firestore, open `users/{admin-uid}`.
+3. Set `role` to `admin`.
+4. Open `http://localhost:5173/admin` while signed in with that account.
+
+The admin dashboard can approve professor profiles and pending reservations. Deploy `firestore.rules` after this change so those actions are enforced by Firebase, not just the UI.

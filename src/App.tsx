@@ -5,6 +5,9 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import CollegeSelection from './pages/CollegeSelection'
 import CeitBuilding from './pages/CeitBuilding'
 import Login from './pages/Login'
+import RoleSetup from './pages/RoleSetup'
+import AdminDashboard from './pages/AdminDashboard'
+import StudentHome from './pages/StudentHome'
 import './App.css'
 
 function Landing() {
@@ -57,8 +60,26 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   return user ? children : <Navigate to="/login" replace />
 }
 
+function RoleRequired({ children }: { children: ReactNode }) {
+  const { profile, loading } = useAuth()
+  if (loading) return <div className="route-loading">Loading KabSpace...</div>
+  return profile?.role ? children : <Navigate to="/onboarding" replace />
+}
+
+function AdminRequired({ children }: { children: ReactNode }) {
+  const { profile, loading } = useAuth()
+  if (loading) return <div className="route-loading">Loading KabSpace...</div>
+  return profile?.role === 'admin' ? children : <Navigate to="/colleges" replace />
+}
+
+function StudentRequired({ children }: { children: ReactNode }) {
+  const { profile, loading } = useAuth()
+  if (loading) return <div className="route-loading">Loading KabSpace...</div>
+  return profile?.role === 'student' ? children : <Navigate to="/colleges" replace />
+}
+
 function App() {
-  return <AuthProvider><BrowserRouter><Routes><Route path="/" element={<Landing />} /><Route path="/login" element={<Login />} /><Route path="/colleges" element={<ProtectedRoute><CollegeSelection /></ProtectedRoute>} /><Route path="/ceit" element={<ProtectedRoute><CeitBuilding /></ProtectedRoute>} /><Route path="*" element={<Navigate to="/" replace />} /></Routes></BrowserRouter></AuthProvider>
+  return <AuthProvider><BrowserRouter><Routes><Route path="/" element={<Landing />} /><Route path="/login" element={<Login />} /><Route path="/onboarding" element={<ProtectedRoute><RoleSetup /></ProtectedRoute>} /><Route path="/student" element={<ProtectedRoute><StudentRequired><StudentHome /></StudentRequired></ProtectedRoute>} /><Route path="/colleges" element={<ProtectedRoute><RoleRequired><CollegeSelection /></RoleRequired></ProtectedRoute>} /><Route path="/ceit" element={<ProtectedRoute><RoleRequired><CeitBuilding /></RoleRequired></ProtectedRoute>} /><Route path="/admin" element={<ProtectedRoute><AdminRequired><AdminDashboard /></AdminRequired></ProtectedRoute>} /><Route path="*" element={<Navigate to="/" replace />} /></Routes></BrowserRouter></AuthProvider>
 }
 
 export default App

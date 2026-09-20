@@ -10,8 +10,21 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
+    function isAdmin() {
+      return signedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
     match /users/{userId} {
-      allow read, create, update: if isOwner(userId);
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId)
+        && request.resource.data.email == request.auth.token.email
+        && !('role' in request.resource.data);
+      allow update: if isOwner(userId)
+        && request.resource.data.email == resource.data.email
+        && (request.resource.data.role == resource.data.role
+          || (!('role' in resource.data) && request.resource.data.role in ['student', 'professor']));
+      allow update: if isAdmin() && request.resource.data.email == resource.data.email;
       allow delete: if false;
     }
 
@@ -33,6 +46,18 @@ service cloud.firestore {
     match /rooms/{roomId} {
       allow read: if signedIn();
       allow write: if false;
+    }
+
+    match /reservations/{reservationId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.professorId == request.auth.uid
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['professor', 'admin']
+        && request.resource.data.status == 'PENDING';
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reviewedAt', 'updatedAt'])
+        && request.resource.data.status in ['APPROVED', 'DECLINED'];
+      allow delete: if false;
     }
   }
 }
