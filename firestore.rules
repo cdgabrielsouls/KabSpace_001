@@ -54,9 +54,13 @@ service cloud.firestore {
         && request.resource.data.professorId == request.auth.uid
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['professor', 'admin']
         && request.resource.data.status == 'PENDING';
-      allow update: if isAdmin()
+      allow update: if (isAdmin()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reviewedAt', 'updatedAt'])
-        && request.resource.data.status in ['APPROVED', 'DECLINED'];
+        && request.resource.data.status in ['APPROVED', 'DECLINED', 'CANCELLED'])
+        || (signedIn()
+          && resource.data.professorId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+          && request.resource.data.status == 'CANCELLED');
       allow delete: if false;
     }
   }

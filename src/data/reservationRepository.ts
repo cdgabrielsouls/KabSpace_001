@@ -1,7 +1,7 @@
-import { addDoc, collection, getDocs, onSnapshot, query, serverTimestamp, Timestamp, where, type Unsubscribe } from 'firebase/firestore'
+import { addDoc, collection, doc, getDocs, onSnapshot, query, serverTimestamp, Timestamp, updateDoc, where, type Unsubscribe } from 'firebase/firestore'
 import { db } from '../firebase'
 
-export type ReservationStatus = 'PENDING' | 'APPROVED' | 'DECLINED'
+export type ReservationStatus = 'PENDING' | 'APPROVED' | 'DECLINED' | 'CANCELLED'
 
 export type Reservation = {
   id: string
@@ -32,7 +32,7 @@ function mapReservation(item: { id: string; data: () => Record<string, unknown> 
     professorName: String(data.professorName),
     startAt,
     endAt,
-    status: data.status === 'APPROVED' ? 'APPROVED' : data.status === 'DECLINED' ? 'DECLINED' : 'PENDING',
+    status: data.status === 'APPROVED' ? 'APPROVED' : data.status === 'DECLINED' ? 'DECLINED' : data.status === 'CANCELLED' ? 'CANCELLED' : 'PENDING',
     createdAt,
     updatedAt,
   }
@@ -66,6 +66,13 @@ export async function createReservation(input: Omit<Reservation, 'id' | 'startAt
     endAt: Timestamp.fromDate(input.endAt),
     status: 'PENDING',
     createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export async function cancelReservation(reservationId: string) {
+  await updateDoc(doc(db, 'reservations', reservationId), {
+    status: 'CANCELLED',
     updatedAt: serverTimestamp(),
   })
 }
